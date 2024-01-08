@@ -40,4 +40,15 @@
 #define ERROR_RTCEXT_WRONGDT_str "(E013) Wrong time setting"
 #define ERROR_RTCEXT_WRONGDT_short "E013"
 
+/** --------------------------------------------------------------------------
+ * Temperature sensor
+ * -------------------------------------------------------------------------- */
+#define ERROR_TEMPEXT_INITFAIL_code 0x01E
+#define ERROR_TEMPEXT_INITFAIL_str "(E030) Temp sensor init failed"
+#define ERROR_TEMPEXT_INITFAIL_short "E030"
+
+/** --------------------------------------------------------------------------
+ * Hall sensor
+ * -------------------------------------------------------------------------- */
+
 #endif  // !__ERROR_CODE_H__

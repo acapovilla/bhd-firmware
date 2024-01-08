@@ -6,6 +6,10 @@
 #include "sd_manager.h"
 #include "rtc_controller.h"
 #include "cmd_interpreter.h"
+#include "temp_controller.h"
+#include "hall_controller.h"
+
+DateTime now;  // Variable to hold current time
 
 void GPIO_init(void) {
     pinMode(ERROR_LED, OUTPUT);
@@ -97,6 +101,32 @@ void setup() {
             delay(50);
         }
     }
+
+    // Initialize one-wire temperature sensor
+    if (TEMP_init()) {
+        Serial.println(ERROR_TEMPEXT_INITFAIL_str);
+
+        while (1) {  // Temperature sensor fail -> Flash ERROR_LED 3 time 1 Hz
+            digitalWrite(ERROR_LED, LED_ON_STATE);
+            delay(50);
+            digitalWrite(ERROR_LED, LED_OFF_STATE);
+            delay(50);
+            digitalWrite(ERROR_LED, LED_ON_STATE);
+            delay(50);
+            digitalWrite(ERROR_LED, LED_OFF_STATE);
+            delay(50);
+            digitalWrite(ERROR_LED, LED_ON_STATE);
+            delay(50);
+            digitalWrite(ERROR_LED, LED_OFF_STATE);
+            delay(3000);
+        }
+    }
+
+    ADC_init();
+    HALL_initIO(HALL_SLEEP_GROUP0, HALL_SLEEP_GROUP1);
+
+    now = RTC_getNow();  // get the updated time
+
     // Start-up finished and error cleared
     Serial.flush();
     digitalWrite(ERROR_LED, LED_OFF_STATE);

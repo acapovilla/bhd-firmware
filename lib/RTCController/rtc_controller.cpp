@@ -62,6 +62,10 @@ bool RTC_dateTimeValid(void) {
     return _dateTimeValid;
 }
 
+DateTime RTC_getNow(void) {
+    return DS3231.now();
+}
+
 bool setDateAndTime(const uint16_t &year, const uint16_t &month,
                     const uint16_t &day, const uint16_t &hour,
                     const uint16_t &minute, const uint16_t &second) {

@@ -33,6 +33,13 @@ uint8_t RTC_initExternal(void);
 bool RTC_dateTimeValid(void);
 
 /**
+ * @brief
+ *
+ * @return
+ */
+DateTime RTC_getNow(void);
+
+/**
  * @brief Set external RTC date and Time
  *
  * @param[in] year Either the full year (2000 to 2099) or the offset from year

@@ -64,10 +64,10 @@ bool SDCard_init(void) {
 
     if (!sd.card()->readCID(&cid) || !sd.card()->readCSD(&csd) ||
         !sd.card()->readOCR(&ocr) /* || !sd.card()->readSCR(&scr) */) {
+#ifdef DEBUG
         Serial.print(F("readInfo failed\n"));
-
         errorPrint();
-
+#endif
         // while (1) delay(10);
         return false;
     }
