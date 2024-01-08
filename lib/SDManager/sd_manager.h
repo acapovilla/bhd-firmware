@@ -27,4 +27,9 @@
  */
 bool SDCard_init(void);
 
+void SDCard_initFileName(const uint16_t year, const uint8_t month,
+                         const uint8_t day, const uint8_t hour,
+                         const uint8_t minute, const uint8_t second,
+                         const uint16_t serial_number);
+
 #endif  // !__SD_MANAGER_H__

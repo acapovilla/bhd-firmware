@@ -127,9 +127,15 @@ void setup() {
 
     now = RTC_getNow();  // get the updated time
 
+    // Initialize logfile name
+    SDCard_initFileName(now.year(), now.month(), now.day(), now.hour(),
+                        now.minute(), now.second(), sn);
+
+    oldDay = now.day();
+
     // Start-up finished and error cleared
     Serial.flush();
-    digitalWrite(ERROR_LED, LED_OFF_STATE);
+    digitalWrite(ERROR_LED, LED_OFF_STATE);  // turn off
 
     /** -------------------------------------------------------
      * End of setup and configuration section
