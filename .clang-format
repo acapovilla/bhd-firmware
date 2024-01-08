@@ -1,0 +1,11 @@
+BasedOnStyle: Google
+IndentWidth: 4
+
+AlignTrailingComments: true
+
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortBlocksOnASingleLine: Empty
+
+ReflowComments:  true
+
+SortIncludes: false
