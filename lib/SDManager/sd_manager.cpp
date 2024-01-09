@@ -170,9 +170,9 @@ void SDCard_initFileName(const uint16_t year, const uint8_t month,
 
     //------------------------------------------------------------
     // Write 1st header line
-    // Header will be: POSIX Time, Date & Time, Hall[0-6] value, Temperature
+    // Header will be: POSIX Time, Date & Time, Hall[0-5] value, Temperature
     logfile.print(
-        F("POSIXt,DateTime,hall0,hall1,hall2,hall3,hall4,hall5,hall6,Temp.C"));
+        F("POSIXt,DateTime,hall0,hall1,hall2,hall3,hall4,hall5,Temp.C"));
     logfile.println();
     // Update the file's creation date, modify date, and access date.
     logfile.timestamp(T_CREATE, year, month, day, hour, minute, second);
@@ -190,4 +190,47 @@ void SDCard_initFileName(const uint16_t year, const uint8_t month,
         Serial.println("<<< FAILED TO WRITE IN LOG FILE >>>");
 #endif
     }
+}
+
+bool SDCard_writeFile(const uint32_t unix_time, const char *timestamp,
+                      const uint16_t hall[6], const float tempC) {
+    // Reopen logfile. If opening fails, notify the user
+    if (!logfile.isOpen()) {
+        if (!logfile.open(filename, O_RDWR | O_CREAT | O_AT_END)) {
+            return true;
+        }
+    }
+
+#ifdef DEBUG
+    Serial.print("Writing to file: ");
+#endif
+    // Write the unixtime
+    logfile.print(unix_time, DEC);
+    logfile.print(F(","));  // POSIX time value
+#ifdef DEBUG
+    Serial.print(unix_time, DEC);
+    Serial.print(",");
+#endif
+    logfile.print(timestamp);
+    logfile.print(F(","));  // human-readable time stamp
+#ifdef DEBUG
+    Serial.print(timestamp);
+    Serial.print(",");
+#endif
+    for (uint8_t _i = 0; _i < 6; ++_i) {
+        logfile.print(hall[_i], DEC);
+        logfile.print(F(","));  // Hall sensor value
+#ifdef DEBUG
+        Serial.print(hall[_i], DEC);
+        Serial.print(",");
+#endif
+    }
+    logfile.print(tempC, 2);  // Temperature sensor value
+    logfile.println();
+#ifdef DEBUG
+    Serial.print(tempC, 2);
+    Serial.println();
+#endif
+
+    return !logfile.close();
 }

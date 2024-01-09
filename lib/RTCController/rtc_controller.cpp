@@ -66,6 +66,18 @@ DateTime RTC_getNow(void) {
     return DS3231.now();
 }
 
+bool RTC_10secondsAlarm(void) {
+    // Disable SQW output
+    DS3231.writeSqwPinMode(DS3231_OFF);
+
+    // Clear older alarm
+    DS3231.clearAlarm(1);
+
+    // Set alarm from now + 10 seconds in the future
+    /// @todo TheCavePearl project has a better way without TimeSpan class
+    return DS3231.setAlarm1(DS3231.now() + TimeSpan(10), DS3231_A1_Second);
+}
+
 bool setDateAndTime(const uint16_t &year, const uint16_t &month,
                     const uint16_t &day, const uint16_t &hour,
                     const uint16_t &minute, const uint16_t &second) {
@@ -102,4 +114,14 @@ void printTimeToSerial(const DateTime &dt) {
 
 void printTimeToSerial(void) {
     printTimeToSerial(DS3231.now());
+}
+
+void printTimeToBuffer(const DateTime &dt, char *buffer) {
+    strcpy(buffer, "YYYY-MM-DD hh:mm:ss");
+    dt.toString(buffer);
+}
+
+void printTimeToBuffer(const uint32_t &unix_time, char *buffer) {
+    DateTime _dt(unix_time);
+    printTimeToBuffer(_dt, buffer);
 }

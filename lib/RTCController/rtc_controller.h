@@ -40,6 +40,13 @@ bool RTC_dateTimeValid(void);
 DateTime RTC_getNow(void);
 
 /**
+ * @brief Clear the alarm 1 and set new 10 seconds in the future
+ *
+ * @return Success
+ */
+bool RTC_10secondsAlarm(void);
+
+/**
  * @brief Set external RTC date and Time
  *
  * @param[in] year Either the full year (2000 to 2099) or the offset from year
@@ -58,6 +65,7 @@ bool setDateAndTime(const uint16_t &year, const uint16_t &month,
 
 /**
  * @brief Print formatted date and time to Serial monitor
+ * @note Format: "YYYY-MM-DD hh:mm:ss"
  *
  * @param[in] dt Date & Time to print
  */
@@ -65,7 +73,26 @@ void printTimeToSerial(const DateTime &dt);
 
 /**
  * @brief Print now date and time to Serial monitor
+ * @note Format: "YYYY-MM-DD hh:mm:ss"
  */
 void printTimeToSerial(void);
+
+/**
+ * @brief Print formatted date and time to char*
+ * @note Format: "YYYY-MM-DD hh:mm:ss"
+ *
+ * @param[in]  unix_time Date and Time to print in unix format
+ * @param[out] buffer Formatted string
+ */
+void printTimeToBuffer(const uint32_t &unix_time, char *buffer);
+
+/**
+ * @brief Print formatted date and time to char*
+ * @note Format: "YYYY-MM-DD hh:mm:ss"
+ *
+ * @param[in]  unix_time Date and Time to print in unix format
+ * @param[out] buffer Formatted string
+ */
+void printTimeToBuffer(const DateTime &dt, char *buffer);
 
 #endif  // !__RTC_CONTROLLER_H__

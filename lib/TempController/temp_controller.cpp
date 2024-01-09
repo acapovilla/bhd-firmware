@@ -34,3 +34,9 @@ bool TEMP_init(void) {
 
     return 1;
 }
+
+float TEMP_read(void) {
+    ds18b20.requestTemperatures();
+
+    return ds18b20.getTempCByIndex(0);
+}

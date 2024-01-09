@@ -53,4 +53,56 @@ void HALL_initIO(const uint8_t group0_sleep, const uint8_t group1_sleep) {
     HALL_setupAnalogPins();
 }
 
-void HALL_read(uint16_t *hall) {}
+void _group_read(uint8_t group, uint16_t* hall) {
+    // Read a group of three analog inputs (AIN[x] to A[x+2])
+    uint8_t _ii = 3 * group, _fin = 3 * (group + 1);
+    for (; _ii < _fin; ++_ii) {
+        // Configure channel
+        ADC0.MUXPOS = (_ii & ADC_MUXPOS_gm);
+
+        // Start ADC conversion
+        ADC0.COMMAND = ADC_STCONV_bm;
+
+        // Wait until ADC conversion done
+        while (!(ADC0.INTFLAGS & ADC_RESRDY_bm)) {
+            ;
+        }
+
+        // Clear the interrupt flag by writing 1
+        ADC0.INTFLAGS = ADC_RESRDY_bm;
+
+        hall[_ii - (3 * group)] = (ADC0.RES >> 5);
+    }
+}
+
+void HALL_wakeAndRead(const uint8_t group0_sleep, const uint8_t group1_sleep,
+                      uint16_t* hall) {
+    // Activar la ejecución en modo standby
+    // ADC0.CTRLA |= ADC_RUNSTBY_bm;
+
+    // Activar las interrupciones del ADC
+    // ADC0.INTCTRL = ADC_RESRDY_bm;
+
+    // Turn on group 0 hall sensors
+    pinMode(group0_sleep, OUTPUT);
+    digitalWrite(group0_sleep, HIGH);
+    delayMicroseconds(500);
+
+    _group_read(0, hall);
+
+    digitalWrite(group0_sleep, LOW);  // put group 0 hall sensor to sleep
+
+    // Turn on group 1 hall sensors
+    pinMode(group1_sleep, OUTPUT);
+    digitalWrite(group1_sleep, HIGH);
+    delayMicroseconds(500);
+
+    _group_read(1, hall + 3);
+
+    digitalWrite(group1_sleep, LOW);  // put group 1 hall sensor to sleep
+}
+
+void HALL_read(const uint8_t group0_sleep, const uint8_t group1_sleep,
+               uint16_t* hall) {
+    HALL_wakeAndRead(group0_sleep, group1_sleep, hall);
+}

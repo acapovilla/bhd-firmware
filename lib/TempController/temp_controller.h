@@ -19,4 +19,11 @@
  */
 bool TEMP_init(void);
 
+/**
+ * @brief
+ *
+ * @returns
+ */
+float TEMP_read(void);
+
 #endif  // !__TEMP_CONTROLLER_H__

@@ -11,6 +11,20 @@
 
 DateTime now;  // Variable to hold current time
 
+// Interrupt flag from RTC alarm
+volatile bool alarmFlag = false;
+
+// Sensors measures
+uint16_t hall_measures[6] = {0};
+float temp_measure = 0;
+
+// Human-readable time stamp for log file
+char timestamp[] = "YYYY-MM-DD hh:mm:ss";
+
+void onAlarm(void) {
+    alarmFlag = true;
+}
+
 void GPIO_init(void) {
     pinMode(ERROR_LED, OUTPUT);
     pinMode(GREEN_LED, OUTPUT);
@@ -131,7 +145,7 @@ void setup() {
     SDCard_initFileName(now.year(), now.month(), now.day(), now.hour(),
                         now.minute(), now.second(), sn);
 
-    oldDay = now.day();
+    // oldDay = now.day();
 
     // Start-up finished and error cleared
     Serial.flush();
@@ -140,7 +154,64 @@ void setup() {
     /** -------------------------------------------------------
      * End of setup and configuration section
      * ------------------------------------------------------- */
+
+    // schedule an alarm 10 seconds in the future
+    if (!RTC_10secondsAlarm()) {
+#ifdef DEBUG
+        Serial.println("Error, alarm wasn't set!");
+#endif
+    } else {
+#ifdef DEBUG
+        Serial.println("Alarm will happen in 10 seconds!");
+#endif
+    }
+
+    // Making it so, that the alarm will trigger an interrupt
+    pinMode(RTC_ALARM_PIN, INPUT);
+    attachInterrupt(digitalPinToInterrupt(2), onAlarm, FALLING);
 }
 
 void loop() {
+    if (alarmFlag) {
+        alarmFlag = false;
+
+        // Show that sensor read and process is running
+        digitalWrite(GREEN_LED, LED_ON_STATE);
+
+        // Update now
+        now = RTC_getNow();
+
+#ifdef DEBUG
+        printTimeToSerial(now);
+#endif
+
+        // Read all six hall sensors
+        HALL_read(HALL_SLEEP_GROUP0, HALL_SLEEP_GROUP1, hall_measures);
+
+        // Read temperature sensor
+        temp_measure = TEMP_read();
+
+        // Create timestamp for logfile
+        printTimeToBuffer(now, timestamp);
+        // Write values to SD
+        SDCard_writeFile(now.unixtime(), timestamp, hall_measures,
+                         temp_measure);
+
+#ifdef DEBUG
+        for (uint8_t i = 0; i < 6; ++i) {
+            Serial.print(hall_measures[i]);
+            Serial.print(',');
+        }
+        Serial.println();
+        Serial.flush();
+#endif
+
+        // Next 10s alarm
+        RTC_10secondsAlarm();
+
+        // Turn-off all
+        digitalWrite(GREEN_LED, LED_OFF_STATE);
+    }
+
+    CMD_readCommand();
 }
