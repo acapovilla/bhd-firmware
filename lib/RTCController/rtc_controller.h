@@ -68,12 +68,15 @@ bool setDateAndTime(const uint16_t &year, const uint16_t &month,
  * @note Format: "YYYY-MM-DD hh:mm:ss"
  *
  * @param[in] dt Date & Time to print
+ * @deprecated Use printTimeToBuffer and print buffer to Serial port
  */
 void printTimeToSerial(const DateTime &dt);
 
 /**
  * @brief Print now date and time to Serial monitor
  * @note Format: "YYYY-MM-DD hh:mm:ss"
+ *
+ * @deprecated Use printTimeToBuffer and print buffer to Serial port
  */
 void printTimeToSerial(void);
 

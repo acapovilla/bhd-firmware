@@ -15,7 +15,7 @@ extern bool setSerialNumber(uint16_t);
 extern bool setDateAndTime(const uint16_t&, const uint16_t&, const uint16_t&,
                            const uint16_t&, const uint16_t&, const uint16_t&);
 
-#define DEBUG
+// #define DEBUG
 
 static const uint8_t BUFFER_SIZE{32};  // Buffer size
 char _serialBuffer[BUFFER_SIZE];       // Buffer for serial command
@@ -32,11 +32,17 @@ COMMANDS _command;
 void _cmd_setSerialNumber(const char* serialnumber) {
     uint16_t sn = strtoul(serialnumber, NULL, 10);
     if (sn > 0 && sn < 1000) {
+#ifdef DEBUG
         Serial.print(F("Setting serial number to "));
         Serial.println(sn);
+#endif
 
         bool f = setSerialNumber(sn);
-        if (f) Serial.println(F("Success"));
+        if (f) {
+#ifdef DEBUG
+            Serial.println(F("Success"));
+#endif
+        }
     }
 }
 
@@ -51,11 +57,15 @@ void _cmd_setDateAndtime(const char* datetime) {
     uint16_t _y, _m, _d, _h, _mm, _s;
     uint16_t _tokens = sscanf(datetime, "%hu-%hu-%hu %hu:%hu:%hu;", &_y, &_m,
                               &_d, &_h, &_mm, &_s);
-    if (_tokens != 6)  // Check to see if it was parsed
+    if (_tokens != 6) {  // Check to see if it was parsed
+#ifdef DEBUG
         Serial.print(F("Unable to parse date/time\n"));
-    else {
+#endif
+    } else {
         setDateAndTime(_y, _m, _d, _h, _mm, _s);  // Adjust the RTC date/time
+#ifdef DEBUG
         Serial.println(F("Date has been set."));
+#endif
     }  // of if-then-else the date could be parsed
 }
 
@@ -122,7 +132,9 @@ void CMD_readCommand(void) {
                  * ------------------------------------------------------- */
                 case COMMANDS::Unknown:
                 default:
+#ifdef DEBUG
                     Serial.println(F("Unknown cmd"));
+#endif
                     break;
             }
 

@@ -9,6 +9,8 @@
 #include "temp_controller.h"
 #include "hall_controller.h"
 
+// #define DEBUG
+
 DateTime now;  // Variable to hold current time
 
 // Interrupt flag from RTC alarm
@@ -61,15 +63,19 @@ void setup() {
     digitalWrite(ERROR_LED, LED_ON_STATE);
 
     uint16_t sn = 0;
-    if (getSerialNumber(sn)) {            // If serial number is valid
+    if (getSerialNumber(sn)) {  // If serial number is valid
+#ifdef DEBUG
         Serial.print("Serial number: ");  // Print via serial
         Serial.println(sn);
-    } else {                                    // If not valid
+#endif
+    } else {  // If not valid
         Serial.println(ERROR_SN_NOTVALID_str);  // Error
     }
 
     if (SDCard_init()) {  // Try start SD card
+#ifdef DEBUG
         Serial.println("SD card initialized.");
+#endif
     } else {  // If error
         Serial.println(ERROR_SDCARD_INITFAIL_str);
 
@@ -103,7 +109,9 @@ void setup() {
     } else if (r == 13) {  // RTC wrong date
         Serial.println(ERROR_RTCEXT_WRONGDT_str);
     } else if (r == 0) {  // Success and apparently correct date and time
+#ifdef DEBUG
         Serial.println(F("RTC initialized."));
+#endif
 
         printTimeToSerial();  // Print actual date and time
     }

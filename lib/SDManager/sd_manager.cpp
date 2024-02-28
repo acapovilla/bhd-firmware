@@ -10,7 +10,7 @@
 
 #include "sd_manager.h"
 
-#define DEBUG
+// #define DEBUG
 
 /*******************************************************
  * SD card objects
