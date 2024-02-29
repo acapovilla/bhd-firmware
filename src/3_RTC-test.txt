@@ -1,0 +1,84 @@
+/**
+ * Basic RTC test
+ *
+ * Arduino Nano Every + DS3231 breakout
+ * 
+ * Lib: adafruit/RTClib@2.1.1
+ *
+ * DS3231 working voltage = 3.3V
+ * I2C pull-up's in the breakout (10k)
+ *
+ */
+
+#include <Arduino.h>
+#include <RTClib.h>
+#include <SPI.h>   // not used here, but needed to prevent a RTClib compile error
+
+#define ORANGELED LED_BUILTIN
+
+RTC_DS3231 rtc;
+
+//------------------------------------------------
+//------------------------------------------------
+// printTime function takes a DateTime object from
+// the real time clock and prints the date and time 
+// to the serial monitor. 
+void printTime(const DateTime &now){
+	Serial.print(now.year(), DEC);
+    Serial.print('-');
+    Serial.print(now.month(), DEC);
+    Serial.print('-');
+    Serial.print(now.day(), DEC);
+    Serial.print(' ');
+    Serial.print(now.hour(), DEC);
+    Serial.print(':');
+	if (now.minute() < 10) {
+		Serial.print("0");
+	}
+    Serial.print(now.minute(), DEC);
+    Serial.print(':');
+	if (now.second() < 10) {
+		Serial.print("0");
+	}
+    Serial.print(now.second(), DEC);
+	// You may want to print a newline character
+	// after calling this function i.e. Serial.println();
+}
+
+void setup() {
+    // put your setup code here, to run once:
+    pinMode(ORANGELED, OUTPUT);
+    digitalWrite(ORANGELED, LOW);   // set low to turn OFF
+
+    Serial.begin(115200);
+    while (!Serial)
+        ;   // wait for serial port to connect. Needed for native USB
+
+    delay(100);
+
+    Serial.println("Clock check");
+    delay(20);
+    while (!rtc.begin()) {                                            // Initialize RTC communications
+        Serial.println("Couldn't find RTC. Checking again in 3s.");   // Show error text
+        delay(3000);                                                  // wait a second
+    }                                                                 // of loop until device is located
+
+    Serial.println(F("DS3231 initialized."));
+    if (rtc.lostPower()) {
+        Serial.println("RTC lost power, let's set the time!");
+        // When time needs to be set on a new device, or after a power loss, the
+        // following line sets the RTC to the date & time this sketch was compiled
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    }
+}
+
+void loop() {
+    // put your main code here, to run repeatedly:
+    printTime(rtc.now());
+    Serial.println();
+    
+    digitalWrite(ORANGELED, HIGH);
+    delay(50);
+    digitalWrite(ORANGELED, LOW);
+    delay(1000);
+}

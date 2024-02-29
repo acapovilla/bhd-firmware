@@ -1,0 +1,59 @@
+/**
+ * Basic hall sensor test
+ *
+ * Arduino Nano Every + A1395
+ *
+ * RED Wire     - 3.3V
+ * BLACK Wire   - GND
+ * YELLOW Wire  - A0 (analog sensor output)
+ * BROWN Wire   - D8 (!SLEEP)
+ */
+
+#include <Arduino.h>
+
+#define ORANGELED LED_BUILTIN
+
+#define AIN_PIN   A0
+#define SLEEP_PIN 8
+
+void setup() {
+    // put your setup code here, to run once:
+    pinMode(ORANGELED, OUTPUT);
+    digitalWrite(ORANGELED, LOW);   // set low to turn OFF
+
+    pinMode(SLEEP_PIN, OUTPUT);
+    digitalWrite(SLEEP_PIN, LOW);   // set high to wake, set low to sleep (~60usec to wake)
+
+    analogReference(EXTERNAL);   // using voltage regulator value on external pin (will this fail if vreg is off?)
+    pinMode(AIN_PIN, INPUT);     // Hall sensor input channel
+
+    Serial.begin(115200);
+    while (!Serial)
+        ;   // wait for serial port to connect. Needed for native USB
+
+    delay(100);
+    Serial.println("Hello");
+}
+
+void loop() {
+    digitalWrite(SLEEP_PIN, HIGH);
+    delay(2);
+
+    analogRead(AIN_PIN);
+    int hall = 0;
+    for (byte i = 0; i < 4; i++) {
+        int read = analogRead(A6);
+        // Serial.print(read);
+        // Serial.print("\t");
+        hall += read;
+        delay(1);   // short delay
+    }
+    digitalWrite(SLEEP_PIN, LOW); 
+
+    // Serial.print(">hall:");
+    Serial.println(hall >> 2);
+
+    // put your main code here, to run repeatedly:
+    digitalWrite(ORANGELED, !(digitalRead(ORANGELED)));
+    delay(20);
+}

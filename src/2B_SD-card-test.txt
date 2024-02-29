@@ -1,0 +1,97 @@
+/**
+ * Basic SD card test
+ *
+ * Arduino Nano Every + MicroSD card breakout (DFR0229)
+ *
+ * Lib: https://github.com/greiman/SdFat-beta#2.1.0-beta.1
+ *
+ * Breakout working voltage = 5V
+ * MISO -> D12 (CIPO SC1)
+ * SCK  -> D13 (SCK)
+ * SS   -> D10
+ * MOSI -> D11 (COPI SC1)
+ */
+
+#include <Arduino.h>
+#include <SPI.h>
+
+#include "SdFat.h"
+
+#define ORANGELED LED_BUILTIN
+
+// SPI pins for SD card
+const uint8_t SD_CHIP_SELECT = 10;
+// #define MOSI 11
+// #define MISO 12
+// #define SCK  13
+
+// SdSpiConfig sds_spi_config(SD_CHIP_SELECT, DEDICATED_SPI, SPI_HALF_SPEED, &SPI);
+
+// set up variables using the SD utility library functions:
+SdFat sd;
+// SdFs sd;
+
+bool failFlag = false;
+
+void setup() {
+    // put your setup code here, to run once:
+    pinMode(ORANGELED, OUTPUT);
+    digitalWrite(ORANGELED, LOW);   // set low to turn OFF
+
+    Serial.begin(115200);
+    while (!Serial)
+        ;   // wait for serial port to connect. Needed for native USB
+
+    delay(100);
+    pinMode(SD_CHIP_SELECT, OUTPUT);   // set chip select pin for SD card to output
+    pinMode(SS, OUTPUT);               // set chip select pin for SD card to output
+
+    Serial.print(F("\nSPI pins:\n"));
+    Serial.print(F("MISO: "));
+    Serial.println(int(MISO));
+    Serial.print(F("MOSI: "));
+    Serial.println(int(MOSI));
+    Serial.print(F("SCK:  "));
+    Serial.println(int(SCK));
+    Serial.print(F("SS:   "));
+    Serial.println(int(SS));
+
+    SPI.begin();
+
+    // see if the card is present and can be initialized:
+    if (!sd.begin(SD_CHIP_SELECT, SPI_HALF_SPEED)) {
+        if (sd.card()->errorCode()) {
+            Serial.print(F(
+                "\nSD initialization failed.\n"
+                "Do not reformat the card!\n"
+                "Is the card correctly inserted?\n"
+                "Is chipSelect set to the correct value?\n"
+                "Does another SPI device need to be disabled?\n"
+                "Is there a wiring/soldering problem?\n"));
+            Serial.print(F("\nerrorCode: "));
+            Serial.print("0x");
+            Serial.print(int(sd.card()->errorCode()), HEX);
+            Serial.print(F(", errorData: ")); 
+            Serial.print("0x");
+            Serial.print(int(sd.card()->errorData()), HEX);
+            Serial.println();
+        }
+        failFlag = true;
+        // don't do anything more:
+        while (1) delay(10);
+    }
+    Serial.println("card initialized.");
+}
+
+void loop() {
+    // If failFlag is false, the SD card was detected, flash green LED
+    if (failFlag == false) {
+        for (byte i = 0; i < 5; i++) {
+            digitalWrite(ORANGELED, LOW);
+            delay(50);
+            digitalWrite(ORANGELED, HIGH);
+            delay(50);
+        }
+    } else if (failFlag) {
+    }
+}
