@@ -69,6 +69,8 @@ void setup() {
         Serial.println(sn);
 #endif
     } else {  // If not valid
+        Serial.print(ERROR_SN_NOTVALID_short);
+        Serial.print(',');
         Serial.println(ERROR_SN_NOTVALID_str);  // Error
     }
 
@@ -77,6 +79,8 @@ void setup() {
         Serial.println("SD card initialized.");
 #endif
     } else {  // If error
+        Serial.print(ERROR_SDCARD_INITFAIL_short);
+        Serial.print(',');
         Serial.println(ERROR_SDCARD_INITFAIL_str);
 
         // SD init fail -> Flash ERROR_LED 2 times 1 Hz
@@ -95,6 +99,8 @@ void setup() {
     // Start external RTC
     uint8_t r = RTC_initExternal();
     if (r == 10) {
+        Serial.print(ERROR_RTCEXT_INITFAIL_short);
+        Serial.print(',');
         Serial.println(ERROR_RTCEXT_INITFAIL_str);
 
         // RTC init fail -> Flash ERROR_LED 1 time 1 Hz
@@ -105,8 +111,12 @@ void setup() {
             delay(1000);
         }
     } else if (r == 11) {  // RTC lost power
+        Serial.print(ERROR_RTCEXT_LOSTPWR_short);
+        Serial.print(',');
         Serial.println(ERROR_RTCEXT_LOSTPWR_str);
     } else if (r == 13) {  // RTC wrong date
+        Serial.print(ERROR_RTCEXT_WRONGDT_short);
+        Serial.print(',');
         Serial.println(ERROR_RTCEXT_WRONGDT_str);
     } else if (r == 0) {  // Success and apparently correct date and time
 #ifdef DEBUG
@@ -126,6 +136,8 @@ void setup() {
 
     // Initialize one-wire temperature sensor
     if (TEMP_init()) {
+        Serial.print(ERROR_TEMPEXT_INITFAIL_short);
+        Serial.print(',');
         Serial.println(ERROR_TEMPEXT_INITFAIL_str);
 
         while (1) {  // Temperature sensor fail -> Flash ERROR_LED 3 time 1 Hz

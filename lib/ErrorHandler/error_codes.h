@@ -8,8 +8,8 @@
  * @todo COPYRIGHT NOTICE
  */
 
-#ifndef __ERROR_CODE_H__
-#define __ERROR_CODE_H__
+#ifndef __ERROR_CODES_H__
+#define __ERROR_CODES_H__
 
 /** --------------------------------------------------------------------------
  * Serial number
@@ -51,4 +51,4 @@
  * Hall sensor
  * -------------------------------------------------------------------------- */
 
-#endif  // !__ERROR_CODE_H__
+#endif  // !__ERROR_CODES_H__
