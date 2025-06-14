@@ -48,8 +48,8 @@
 #define HALL_GROUP1_AIN3 A0  // 14
 #define HALL_GROUP1_AIN4 A6  // 20
 #define HALL_GROUP1_AIN5 A7  // 21
-#define HALL_SLEEP_GROUP0 7  // PA1
-#define HALL_SLEEP_GROUP1 8  // PE3
+#define HALL_SLEEP_GROUP0 8  // PE3
+#define HALL_SLEEP_GROUP1 7  // PA1
 // #define ANALOG_EXT_AREF
 
 /** --------------------------------------------------------------------------

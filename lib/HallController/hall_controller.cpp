@@ -71,7 +71,29 @@ void _group_read(uint8_t group, uint16_t* hall) {
         // Clear the interrupt flag by writing 1
         ADC0.INTFLAGS = ADC_RESRDY_bm;
 
-        hall[_ii - (3 * group)] = (ADC0.RES >> 5);
+        hall[_ii - (3 * group)] = (ADC0.RES >> 4);  // 12-bit "resolution"
+    }
+}
+
+void _read(uint16_t* hall) {
+    uint8_t _order[6] = {3, 2, 1, 0, 4, 5};
+
+    for (uint8_t _ii = 0; _ii < 6; ++_ii) {
+        // Configure channel
+        ADC0.MUXPOS = (_ii & ADC_MUXPOS_gm);
+
+        // Start ADC conversion
+        ADC0.COMMAND = ADC_STCONV_bm;
+
+        // Wait until ADC conversion done
+        while (!(ADC0.INTFLAGS & ADC_RESRDY_bm)) {
+            ;
+        }
+
+        // Clear the interrupt flag by writing 1
+        ADC0.INTFLAGS = ADC_RESRDY_bm;
+
+        hall[_order[_ii]] = (ADC0.RES >> 4);  // 12-bit "resolution"
     }
 }
 
@@ -86,19 +108,20 @@ void HALL_wakeAndRead(const uint8_t group0_sleep, const uint8_t group1_sleep,
     // Turn on group 0 hall sensors
     pinMode(group0_sleep, OUTPUT);
     digitalWrite(group0_sleep, HIGH);
-    delayMicroseconds(500);
-
-    _group_read(0, hall);
-
-    digitalWrite(group0_sleep, LOW);  // put group 0 hall sensor to sleep
-
     // Turn on group 1 hall sensors
     pinMode(group1_sleep, OUTPUT);
     digitalWrite(group1_sleep, HIGH);
-    delayMicroseconds(500);
+    delayMicroseconds(1000);
 
-    _group_read(1, hall + 3);
+    _read(hall);
 
+    // _group_read(0, hall);
+
+    // delayMicroseconds(500);
+
+    // _group_read(1, hall + 3);
+
+    digitalWrite(group0_sleep, LOW);  // put group 0 hall sensor to sleep
     digitalWrite(group1_sleep, LOW);  // put group 1 hall sensor to sleep
 }
 
