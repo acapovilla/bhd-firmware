@@ -2,6 +2,7 @@
 
 #include "pin_definitions.h"
 #include "error_codes.h"
+#include "msg_codes.h"
 #include "serial_number.h"
 #include "sd_manager.h"
 #include "rtc_controller.h"
@@ -189,6 +190,10 @@ void setup() {
     // Making it so, that the alarm will trigger an interrupt
     pinMode(RTC_ALARM_PIN, INPUT);
     attachInterrupt(digitalPinToInterrupt(2), onAlarm, FALLING);
+
+    Serial.print(MSG_SYS_READY_short);
+    Serial.print(',');
+    Serial.println(MSG_SYS_READY_str);
 }
 
 void loop() {
