@@ -172,7 +172,7 @@ void SDCard_initFileName(const uint16_t year, const uint8_t month,
     // Write 1st header line
     // Header will be: POSIX Time, Date & Time, Hall[0-5] value, Temperature
     logfile.print(
-        F("POSIXt,DateTime,hall0,hall1,hall2,hall3,hall4,hall5,Temp.C"));
+        F("POSIXt,DateTime,hall1,hall2,hall3,hall4,hall5,hall6,Temp.C"));
     logfile.println();
     // Update the file's creation date, modify date, and access date.
     logfile.timestamp(T_CREATE, year, month, day, hour, minute, second);
