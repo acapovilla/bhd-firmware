@@ -14,6 +14,7 @@ RTC_DS3231 DS3231;
 
 bool _clockErrorFlag = true;
 bool _dateTimeValid = false;
+bool _alarmSetFlag = false;
 
 uint8_t RTC_initExternal(void) {
     if (!DS3231.begin()) {  // Initialize RTC communications
@@ -66,7 +67,7 @@ DateTime RTC_getNow(void) {
     return DS3231.now();
 }
 
-bool RTC_10secondsAlarm(void) {
+bool RTC_1secondAlarm(void) {
     // Disable SQW output
     DS3231.writeSqwPinMode(DS3231_OFF);
 
@@ -75,17 +76,26 @@ bool RTC_10secondsAlarm(void) {
 
     // Set alarm from now + 10 seconds in the future
     /// @todo TheCavePearl project has a better way without TimeSpan class
-    return DS3231.setAlarm1(DS3231.now() + TimeSpan(10), DS3231_A1_Second);
+    _alarmSetFlag =
+        DS3231.setAlarm1(DS3231.now() + TimeSpan(1), DS3231_A1_Second);
+    return _alarmSetFlag;
 }
 
 bool setDateAndTime(const uint16_t &year, const uint16_t &month,
                     const uint16_t &day, const uint16_t &hour,
                     const uint16_t &minute, const uint16_t &second) {
+    DS3231.disableAlarm(1);
+
     DS3231.adjust(DateTime(year, month, day, hour, minute, second));
+
+    if (_alarmSetFlag) {
+        _alarmSetFlag = RTC_1secondAlarm();
+    }
+
     if (!DS3231.lostPower()) {
         _dateTimeValid = true;
     }
-    return DS3231.lostPower();
+    return !DS3231.lostPower();
 }
 
 void printTimeToSerial(const DateTime &dt) {
