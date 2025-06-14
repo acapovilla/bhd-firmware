@@ -27,9 +27,11 @@ COMMANDS _command;
  *
  * @param[in] serialnumber
  *
+ * @return True if success
+ *
  * @todo Describir
  */
-void _cmd_setSerialNumber(const char* serialnumber) {
+bool _cmd_setSerialNumber(const char* serialnumber) {
     uint16_t sn = strtoul(serialnumber, NULL, 10);
     if (sn > 0 && sn < 1000) {
 #ifdef DEBUG
@@ -42,8 +44,10 @@ void _cmd_setSerialNumber(const char* serialnumber) {
 #ifdef DEBUG
             Serial.println(F("Success"));
 #endif
+            return true;
         }
     }
+    return false;
 }
 
 /**
