@@ -206,9 +206,8 @@ void loop() {
         // Update now
         now = RTC_getNow();
 
-#ifdef DEBUG
-        printTimeToSerial(now);
-#endif
+        Serial.print(now.unixtime(), DEC);
+        Serial.print(F(","));  // POSIX time value
 
         // Read all six hall sensors
         HALL_read(HALL_SLEEP_GROUP0, HALL_SLEEP_GROUP1, hall_measures);
@@ -222,14 +221,14 @@ void loop() {
         SDCard_writeFile(now.unixtime(), timestamp, hall_measures,
                          temp_measure);
 
-#ifdef DEBUG
         for (uint8_t i = 0; i < 6; ++i) {
             Serial.print(hall_measures[i]);
             Serial.print(',');
         }
+        Serial.print(temp_measure, 2);
+
         Serial.println();
         Serial.flush();
-#endif
 
         // Next 10s alarm
         RTC_10secondsAlarm();
