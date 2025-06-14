@@ -12,8 +12,13 @@
 #include <Arduino.h>
 
 extern bool setSerialNumber(uint16_t);
+extern bool getSerialNumber(uint16_t& sn);
 extern bool setDateAndTime(const uint16_t&, const uint16_t&, const uint16_t&,
                            const uint16_t&, const uint16_t&, const uint16_t&);
+extern void SDCard_initFileName(const uint16_t year, const uint8_t month,
+                                const uint8_t day, const uint8_t hour,
+                                const uint8_t minute, const uint8_t second,
+                                const uint16_t serial_number);
 
 // #define DEBUG
 
@@ -55,9 +60,11 @@ bool _cmd_setSerialNumber(const char* serialnumber) {
  *
  * @param[in] datetime YYYY-MM-DD HH:MM:SS
  *
+ * @return True if success
+ *
  * @todo Describir
  */
-void _cmd_setDateAndtime(const char* datetime) {
+bool _cmd_setDateAndtime(const char* datetime) {
     uint16_t _y, _m, _d, _h, _mm, _s;
     uint16_t _tokens = sscanf(datetime, "%hu-%hu-%hu %hu:%hu:%hu;", &_y, &_m,
                               &_d, &_h, &_mm, &_s);
@@ -65,12 +72,25 @@ void _cmd_setDateAndtime(const char* datetime) {
 #ifdef DEBUG
         Serial.print(F("Unable to parse date/time\n"));
 #endif
+        return false;
     } else {
-        setDateAndTime(_y, _m, _d, _h, _mm, _s);  // Adjust the RTC date/time
+        // Adjust the RTC date/time
+        if (setDateAndTime(_y, _m, _d, _h, _mm, _s)) {
 #ifdef DEBUG
-        Serial.println(F("Date has been set."));
+            Serial.print(F("Date has been set.\n"));
 #endif
+            uint16_t sn = 0;
+            getSerialNumber(sn);
+
+            SDCard_initFileName(_y, _m, _d, _h, _mm, _s, sn);
+            return true;
+        } else {
+#ifdef DEBUG
+            Serial.print(F("Unable to set date/time.\n"));
+#endif
+        }
     }  // of if-then-else the date could be parsed
+    return false;
 }
 
 void CMD_readCommand(void) {
