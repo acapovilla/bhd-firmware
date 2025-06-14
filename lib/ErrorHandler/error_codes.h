@@ -33,7 +33,7 @@
 #define ERROR_RTCEXT_INITFAIL_short "E010"
 
 #define ERROR_RTCEXT_LOSTPWR_code 0x00B
-#define ERROR_RTCEXT_LOSTPWR_str "(E011) RTC lost power, set the time"
+#define ERROR_RTCEXT_LOSTPWR_str "(E011) RTC lost power. Set the time"
 #define ERROR_RTCEXT_LOSTPWR_short "E011"
 
 #define ERROR_RTCEXT_WRONGDT_code 0x00D
