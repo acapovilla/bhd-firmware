@@ -1,0 +1,135 @@
+/**
+ * ADC oversampling
+ *
+ * Arduino Nano Every + A1395 + LEDs
+ *
+ * RED Wire     - 3.3V
+ * BLACK Wire   - GND
+ * YELLOW Wire  - A0 (analog sensor output)
+ * BROWN Wire   - D8 (!SLEEP)
+ * 
+ * ERROR LED   - D3
+ * GREEN LED   - D4
+ */
+
+#include <Arduino.h>
+
+/**
+ * Pin definition
+ */
+#define LED_OFF_STATE HIGH
+#define LED_ON_STATE LOW
+#define ERROR_LED PIN3
+#define GREEN_LED PIN4
+
+// f_oversampling = 4^n f_nyquist
+// From 10bits to 11bits resolution, 4 more samples has to be taken
+// Averaging: 16 samples (avoid division, use right shift)
+// Final: 16 * 4 = 64 samples
+// Scale factor: 2^n * 16 => 2^1 (for 11 bits) * 2^4 (averaging) = 32 (">> 5")
+// Sample Accumulation: 64
+#define ADC_ACC_SAMPLES ADC_SAMPNUM_ACC64_gc
+
+#define HALL0_port PORTD
+#define HALL0_pin_CTRL PORTD_PIN3CTRL
+
+volatile uint16_t adcVal = 0;
+
+void ADC0_init(void) {
+    // Not RUN in standby
+    // Resolution: 10bits
+    // One-shot mode
+    ADC0.CTRLA &= ~(ADC_RUNSTBY_bm | ADC_RESSEL_bm | ADC_FREERUN_bm);
+
+    // Sample Accumulation
+    ADC0.CTRLB = ADC_ACC_SAMPLES;
+
+    // CLK_PER divided by 64 = 125kHz @ 16MHz CPU
+    // External reference: AREF (connected to 3.3V output)
+    // Enable reduced size of sampling capacitance (@todo: more testing)
+    ADC0.CTRLC = ADC_REFSEL_VREFA_gc | ADC_SAMPCAP_bm | ADC_PRESC_DIV64_gc;
+
+    // Enable ADC
+    ADC0.CTRLA |= ADC_ENABLE_bm;
+}
+
+uint16_t ADC0_read(void) {
+    // Start ADC conversion
+    ADC0.COMMAND = ADC_STCONV_bm;
+
+    // Wait until ADC conversion done
+    while (!(ADC0.INTFLAGS & ADC_RESRDY_bm)) {
+        ;
+    }
+
+    // Clear the interrupt flag by writing 1
+    ADC0.INTFLAGS = ADC_RESRDY_bm;
+
+    return ADC0.RES;
+}
+
+void ADC0_setupPin(void) {
+    /* Disable digital input buffer */
+    HALL0_pin_CTRL &= ~PORT_ISC_gm;
+    HALL0_pin_CTRL |= PORT_ISC_INPUT_DISABLE_gc;
+
+    /* Disable pull-up resistor */
+    HALL0_pin_CTRL &= ~PORT_PULLUPEN_bm;
+
+    /* Select ADC channel */
+    ADC0.MUXPOS = ADC_MUXPOS_AIN3_gc;
+}
+
+void setup() {
+    pinMode(ERROR_LED, OUTPUT);
+    pinMode(GREEN_LED, OUTPUT);
+
+    digitalWrite(ERROR_LED, LED_ON_STATE);
+    digitalWrite(GREEN_LED, LED_OFF_STATE);
+
+    // Flash green LED to show that we just booted up
+    for (byte i = 0; i < 3; i++) {
+        digitalWrite(GREEN_LED, LED_ON_STATE);
+        delay(100);
+        digitalWrite(GREEN_LED, LED_OFF_STATE);
+        delay(100);
+    }
+
+    Serial.begin(115200);
+    Serial.println("<Arduino ready>");
+    Serial.flush();
+
+    delay(500);
+
+    ADC0_init();
+    ADC0_setupPin();
+
+    // Activate hall sensor
+    pinMode(8, OUTPUT);
+    digitalWrite(8, HIGH);
+
+    digitalWrite(ERROR_LED, LED_OFF_STATE);
+    digitalWrite(GREEN_LED, LED_ON_STATE);
+}
+
+void loop() {
+    unsigned long _start = micros();
+
+    adcVal = ADC0_read();
+    // adcVal = adcVal >> (ADC_ACC_SAMPLES);        // 10 bits (ADC native)
+    adcVal = adcVal >> (ADC_ACC_SAMPLES - 1);       // 11 bit by oversampling
+
+    unsigned long _finish = micros();
+
+    Serial.print("Start: ");
+    Serial.print(_start);
+    Serial.print(" - Finish: ");
+    Serial.print(_finish);
+    Serial.print(" - Dif: ");
+    Serial.println(_finish - _start);
+
+    Serial.print(">>> ADC: ");
+    Serial.println(adcVal);
+
+    delay(1000);
+}

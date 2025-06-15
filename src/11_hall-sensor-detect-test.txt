@@ -1,0 +1,127 @@
+/**
+ * Test hall sensor presence detection capability
+ *
+ */
+
+#include <Arduino.h>
+
+/**
+ * Pin definition
+ */
+#define LED_OFF_STATE HIGH
+#define LED_ON_STATE LOW
+#define ERROR_LED PIN3
+#define GREEN_LED PIN4
+
+#define D7_READ ((PORTA.IN & PIN1_bm) >> PIN1_bp)
+#define D8_READ ((PORTE.IN & PIN3_bm) >> PIN3_bp)
+
+uint8_t portA_1, portE_1;
+uint8_t portA_2, portE_2;
+
+void detectPins(void) {
+    // Arduino D7 - PA1
+    // Arduino D8 - PE3
+
+    // Serial.println("< RESET >");
+    // Serial.print("D7: ");
+    // Serial.print(D7_READ);
+    // Serial.print(" - D8: ");
+    // Serial.println(D8_READ);
+
+    // Configure GPIO as Input
+    PORTA.DIRCLR = PIN1_bm;
+    PORTE.DIRCLR = PIN3_bm;
+
+    // Enable Pull-UP and input buffer enabled
+    PORTA.PIN1CTRL = (PORT_PULLUPEN_bm);
+    PORTE.PIN3CTRL = (PORT_PULLUPEN_bm);
+
+    // pinMode(8, INPUT);
+    // pinMode(7, INPUT);
+
+    delayMicroseconds(10);
+
+    // Serial.println("< pinMode(INPUT) >");
+    // Serial.println("< DIRCLR AND PULL-UP >");
+    // Serial.print("D7: ");
+    // Serial.print(D7_READ);
+    // Serial.print(" - D8: ");
+    // Serial.println(D8_READ);
+    portA_1 = PORTA.IN;
+    portE_1 = PORTE.IN;
+
+    // Disable Pull-Up
+    PORTA.PIN1CTRL &= ~(PORT_PULLUPEN_bm);
+    PORTE.PIN3CTRL &= ~(PORT_PULLUPEN_bm);
+
+    // pinMode(7, INPUT_PULLUP);
+    // pinMode(8, INPUT_PULLUP);
+
+    delay(100);
+
+    // Serial.println("< pinMode(INPUT_PULLUP) >");
+    // Serial.println("< DISABLE PULL-UP >");
+    // Serial.print("D7: ");
+    // Serial.print(D7_READ);
+    // Serial.print(" - D8: ");
+    // Serial.println(D8_READ);
+    portA_2 = PORTA.IN;
+    portE_2 = PORTE.IN;
+
+    // Configure GPIO as output on low
+    PORTA.DIRSET = PIN1_bm;
+    PORTE.DIRSET = PIN3_bm;
+    PORTA.OUTCLR = PIN1_bm;
+    PORTE.OUTCLR = PIN3_bm;
+}
+
+void setup() {
+    pinMode(ERROR_LED, OUTPUT);
+    pinMode(GREEN_LED, OUTPUT);
+
+    digitalWrite(ERROR_LED, LED_ON_STATE);
+    digitalWrite(GREEN_LED, LED_OFF_STATE);
+
+    // Flash green LED to show that we just booted up
+    for (byte i = 0; i < 3; i++) {
+        digitalWrite(GREEN_LED, LED_ON_STATE);
+        delay(100);
+        digitalWrite(GREEN_LED, LED_OFF_STATE);
+        delay(100);
+    }
+
+    Serial.begin(115200);
+    Serial.println("<Arduino ready>");
+    Serial.flush();
+
+    delay(500);
+    Serial.println("<<< First time >>>");
+    detectPins();
+    Serial.println("< DIRCLR AND PULL-UP >");
+    Serial.print("D7: ");
+    Serial.print((portA_1 & PIN1_bm) >> PIN1_bp);
+    Serial.print(" - D8: ");
+    Serial.println((portE_1 & PIN3_bm) >> PIN3_bp);
+    Serial.println("< DISABLE PULL-UP >");
+    Serial.print("D7: ");
+    Serial.print((portA_2 & PIN1_bm) >> PIN1_bp);
+    Serial.print(" - D8: ");
+    Serial.println((portE_2 & PIN3_bm) >> PIN3_bp);
+    delay(2000);
+
+    Serial.println("\n\n<<< Second time >>>");
+    detectPins();
+    Serial.println("< DIRCLR AND PULL-UP >");
+    Serial.print("D7: ");
+    Serial.print((portA_1 & PIN1_bm) >> PIN1_bp);
+    Serial.print(" - D8: ");
+    Serial.println((portE_1 & PIN3_bm) >> PIN3_bp);
+    Serial.println("< DISABLE PULL-UP >");
+    Serial.print("D7: ");
+    Serial.print((portA_2 & PIN1_bm) >> PIN1_bp);
+    Serial.print(" - D8: ");
+    Serial.println((portE_2 & PIN3_bm) >> PIN3_bp);
+}
+
+void loop() {}

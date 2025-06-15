@@ -1,0 +1,228 @@
+/**
+ * ADC oversampling + group reading of hall sensors + sleep mode test code
+ */
+
+#include <Arduino.h>
+//
+#include <avr/sleep.h>
+
+/**
+ * Pin definition
+ */
+#define LED_OFF_STATE HIGH
+#define LED_ON_STATE LOW
+#define ERROR_LED PIN3
+#define GREEN_LED PIN4
+
+// f_oversampling = 4^n f_nyquist
+// From 10bits to 11bits resolution, 4 more samples has to be taken
+// Averaging: 16 samples (avoid division, use right shift)
+// Final: 16 * 4 = 64 samples
+// Scale factor: 2^n * 16 => 2^1 (for 11 bits) * 2^4 (averaging) = 32 (">> 5")
+// Sample Accumulation: 64
+#define ADC_ACC_SAMPLES ADC_SAMPNUM_ACC64_gc
+
+// Hall sensors from PD0 AIN[0] to PD5 AIN[5]
+#define PORTD_BASE_ADDR 0x460
+#define HALL_GROUP0_SLEEP 7
+#define HALL_GROUP1_SLEEP 8
+
+// volatile uint16_t adcVal = 0;
+volatile uint16_t hall[6] = {0};
+
+void SLPCTRL_init(void) {
+    // SLPCTRL.CTRLA |=
+    //     SLPCTRL_SMODE_PDOWN_gc;  // Use this for lowest power POWERDOWN mode
+    SLPCTRL.CTRLA |= SLPCTRL_SMODE_STDBY_gc;  // Use this for Standby mode
+    SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;          // Enable sleep mode
+                                      // You must still call sleep_cpu() in the
+                                      // main program to enter sleep mode
+}
+
+void ADC0_setup(void) {
+    // Not RUN in standby
+    // Resolution: 10bits
+    // One-shot mode
+    ADC0.CTRLA &= ~(ADC_RUNSTBY_bm | ADC_RESSEL_bm | ADC_FREERUN_bm);
+
+    // Sample Accumulation
+    ADC0.CTRLB = ADC_ACC_SAMPLES;
+
+    // CLK_PER divided by 64 = 125kHz @ 16MHz CPU
+    // External reference: AREF (connected to 3.3V output)
+    // Sample capacitance = 0 (@todo more testing)
+    ADC0.CTRLC = ADC_REFSEL_VREFA_gc | ADC_PRESC_DIV64_gc;
+
+    // Enable ADC
+    ADC0.CTRLA |= ADC_ENABLE_bm;
+}
+
+uint16_t ADC0_read(void) {
+    // Start ADC conversion
+    ADC0.COMMAND = ADC_STCONV_bm;
+
+    // Wait until ADC conversion done
+    while (!(ADC0.INTFLAGS & ADC_RESRDY_bm)) {
+        ;
+    }
+
+    // Clear the interrupt flag by writing 1
+    ADC0.INTFLAGS = ADC_RESRDY_bm;
+
+    return ADC0.RES;
+}
+
+void hallsensors_setupAnalogPins(void) {
+    /* From PD0 to PD5 pins as input */
+    PORTD_DIRCLR = (PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm | PIN4_bm | PIN5_bm);
+
+    /* Disable digital input buffer and internal pull-up */
+    for (uint8_t _ii = 0; _ii < 6; ++_ii) {
+        _SFR_MEM8(PORTD_BASE_ADDR + 0x10 + _ii) &=
+            ~(PORT_ISC_gm | PORT_PULLUPEN_bm);
+        _SFR_MEM8(PORTD_BASE_ADDR + 0x10 + _ii) |= PORT_ISC_INPUT_DISABLE_gc;
+    }
+}
+
+volatile bool adc_flag = 0;
+
+ISR(ADC0_RESRDY_vect) {
+    // Clear the interrupt flag by writing 1
+    ADC0.INTFLAGS = ADC_RESRDY_bm;
+
+    adc_flag = 1;
+}
+
+void _group_read(uint8_t group) {
+    // Read a group of three analog inputs (AIN[x] to A[x+2])
+    uint8_t _ii = 0 + group, _fin = 3 * (group + 1);
+    for (; _ii < _fin; ++_ii) {
+        // Configure channel
+        ADC0.MUXPOS = (_ii & ADC_MUXPOS_gm);
+
+        digitalWrite(ERROR_LED, LED_ON_STATE);
+        adc_flag = 0;
+
+        // Start ADC conversion
+        ADC0.COMMAND = ADC_STCONV_bm;
+
+        // while (!adc_flag)
+        //     ;
+        sleep_cpu();  // Sleep until ADC interrupt
+
+        /// @todo Puede que la interrupción no sea del ADC
+
+        digitalWrite(ERROR_LED, LED_OFF_STATE);
+
+        hall[_ii] = (ADC0.RES >> 5);
+    }
+}
+
+void hallsensor_read(void) {
+    // Activar la ejecución en modo standby
+    ADC0.CTRLA |= ADC_RUNSTBY_bm;
+
+    // Activar las interrupciones del ADC
+    ADC0.INTCTRL = ADC_RESRDY_bm;
+
+    // Turn on group 0 hall sensors
+    pinMode(HALL_GROUP0_SLEEP, OUTPUT);
+    digitalWrite(HALL_GROUP0_SLEEP, HIGH);
+    delayMicroseconds(500);
+
+    _group_read(0);
+
+    digitalWrite(HALL_GROUP0_SLEEP, LOW);  // put group 0 hall sensor to sleep
+
+    // Turn on group 1 hall sensors
+    pinMode(HALL_GROUP1_SLEEP, OUTPUT);
+    digitalWrite(HALL_GROUP1_SLEEP, HIGH);
+    delayMicroseconds(500);
+
+    _group_read(1);
+
+    digitalWrite(HALL_GROUP1_SLEEP, LOW);  // put group 1 hall sensor to sleep
+}
+
+void setup() {
+    pinMode(ERROR_LED, OUTPUT);
+    pinMode(GREEN_LED, OUTPUT);
+
+    digitalWrite(ERROR_LED, LED_ON_STATE);
+    digitalWrite(GREEN_LED, LED_OFF_STATE);
+
+    // Flash green LED to show that we just booted up
+    for (byte i = 0; i < 3; i++) {
+        digitalWrite(GREEN_LED, LED_ON_STATE);
+        delay(100);
+        digitalWrite(GREEN_LED, LED_OFF_STATE);
+        delay(100);
+    }
+
+    Serial.begin(115200);
+    Serial.println("<Arduino ready>");
+    Serial.flush();
+
+    delay(500);
+
+    ADC0_setup();
+    hallsensors_setupAnalogPins();
+
+    digitalWrite(ERROR_LED, LED_OFF_STATE);
+    digitalWrite(GREEN_LED, LED_ON_STATE);
+
+    SLPCTRL_init();
+    // sleep_cpu();
+
+    // unsigned long _start = micros();
+    // hallsensor_read();
+    // unsigned long _finish = micros();
+
+    // Serial.print("Start: ");
+    // Serial.print(_start);
+    // Serial.print(" - Finish: ");
+    // Serial.print(_finish);
+    // Serial.print(" - Dif: ");
+    // Serial.println(_finish - _start);
+
+    // for (uint8_t _ii = 0; _ii < 6; ++_ii) {
+    //     Serial.print(_ii, DEC);
+    //     Serial.print(": ");
+    //     Serial.println(hall[_ii]);
+    // }
+
+    // Serial.flush();
+}
+
+void loop() {
+    // unsigned long _start = micros();
+
+    // adcVal = ADC0_read();
+
+    // unsigned long _finish = micros();
+
+    // // adcVal = adcVal >> (ADC_ACC_SAMPLES);      // 10 bits (ADC native)
+    // adcVal = adcVal >> (ADC_ACC_SAMPLES - 1);  // 11 bit by oversampling
+
+    // Serial.print("Start: ");
+    // Serial.print(_start);
+    // Serial.print(" - Finish: ");
+    // Serial.print(_finish);
+    // Serial.print(" - Dif: ");
+    // Serial.println(_finish - _start);
+
+    // Serial.print(">>> ADC: ");
+    // Serial.println(adcVal);
+
+    hallsensor_read();
+    for (uint8_t _ii = 0; _ii < 6; ++_ii) {
+        // Serial.print(_ii, DEC);
+        Serial.print(hall[_ii]);
+        Serial.print(", ");
+    }
+    Serial.println();
+    Serial.flush();
+
+    delay(2000);
+    // sleep_cpu();
+}

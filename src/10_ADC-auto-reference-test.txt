@@ -1,0 +1,99 @@
+/**
+ * ADC voltage reference from DAC
+ *
+ * Arduino Nano Every + LEDs
+ *
+ * ERROR LED   - D3
+ * GREEN LED   - D4
+ */
+
+#include <Arduino.h>
+
+/**
+ * Pin definition
+ */
+#define LED_OFF_STATE HIGH
+#define LED_ON_STATE LOW
+#define ERROR_LED PIN3
+#define GREEN_LED PIN4
+
+void setup() {
+    // Flash green LED to show that we just booted up
+    for (byte i = 0; i < 3; i++) {
+        digitalWrite(GREEN_LED, LED_ON_STATE);
+        delay(100);
+        digitalWrite(GREEN_LED, LED_OFF_STATE);
+        delay(100);
+    }
+
+    Serial.begin(115200);
+    Serial.println("<Arduino ready>");
+    delay(500);
+
+    //////////////////////////////////////////////////
+
+    // VREF del comparador AC0 en 4.3v y del ADC0 en 0.55v (no importa porque no
+    // se usa)
+    VREF.CTRLA = VREF_AC0REFSEL_4V34_gc;
+    VREF.CTRLB = VREF_AC0REFEN_bm;  // Solo activo la referencia del AC0
+
+    // V_DACREF = DACREF / 256 * VREF
+    // Si DACREF = 128 -> V_DACREF = VREF / 2 = 4.34 / 2 = 2.17
+    AC0.DACREF = 128;
+    // Disable AC (DACREF still work)
+    AC0.CTRLA &= ~AC_ENABLE_bm;
+
+    // Enable ADC & Configure VREF ADC0 reference
+    ADC0.CTRLA = ADC_ENABLE_bm;
+    // Sample Accumulation = 0
+    ADC0.CTRLB = 0x00;
+    // ADC0.CTRLB = ADC_SAMPNUM_ACC4_gc;
+    // Configure VREF ADC0 reference to AREF
+    ADC0.CTRLC &= ~ADC_REFSEL_gm;
+    ADC0.CTRLC |= ADC_REFSEL_VREFA_gc;
+
+    // Select channel = DACREF0
+    ADC0.MUXPOS = 0x1C;
+    // ADC0.MUXPOS = 3;
+
+    //////////////////////////////////////////////////
+
+    /* Start conversion */
+    ADC0.COMMAND = ADC_STCONV_bm;
+
+    /* Wait for result ready */
+    while (!(ADC0.INTFLAGS & ADC_RESRDY_bm))
+        ;
+
+    /* Save state */
+    uint8_t status = SREG;
+    cli();
+
+    /* Read result */
+    uint8_t _low = ADC0.RESL;
+    uint8_t _high = ADC0.RESH;
+
+    /* Restore state */
+    SREG = status;
+
+    //////////////////////////////////////////////////
+
+    // Calcular resultado
+    uint16_t result = (_high << 8) | _low;
+
+    // Si leo la entrada de DACREF0 tendría que tener un valor aprox de 1.1v
+    Serial.print("ADC value: ");
+    Serial.println(result);
+
+    Serial.print("DACREF0: ");
+    Serial.println((result * 3.3f) / 1024, 3);
+
+    Serial.print("AREF real: ");
+    float aref = (4.34f * 512) / result;
+    Serial.print(aref, 3);
+    Serial.print(" (corregido = ");
+    Serial.print((result * aref) / 1024, 3);
+    Serial.println(")");
+}
+
+void loop() {}
