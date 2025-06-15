@@ -94,3 +94,9 @@ Also see the list of [contributors](https://github.com/acapovilla/bhd-firmware/c
 This project builds upon and was inspired by the excellent work of:
 
 - **Luke Miller** – Creator of the BivalveBit and MusselGapeTracker projects, which provided foundational ideas and code for this firmware. [https://github.com/millerlp](https://github.com/millerlp)
+
+---
+
+<br>
+
+_README_ based on [embeddedartistry](https://github.com/embeddedartistry/templates) template.
