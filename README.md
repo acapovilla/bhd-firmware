@@ -54,7 +54,7 @@ To set the correct time and date on the real-time clock (RTC), connect to the de
 
 ## Further Reading
 
-Additional documentation will be made available in the [`docs`](docs/) directory.
+Additional documentation is available in the [`docs`](docs/) directory.
 
 ## License
 
