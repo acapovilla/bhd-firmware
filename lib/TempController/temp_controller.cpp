@@ -1,11 +1,20 @@
 /**
  * @file    temp_controller.cpp
- * @author
- * @date    01-2024
+ * @author  Agustín Capovilla
+ * @date    2024-01
  *
- * @brief
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * @todo COPYRIGHT NOTICE
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "temp_controller.h"
@@ -13,10 +22,8 @@
 #include <DallasTemperature.h>
 #include <OneWire.h>
 
-/**
- * @todo One-Wire data pin is hardcoded
- */
 // Setup a oneWire instance to communicate with any OneWire devices
+/// @todo One-Wire data pin is hardcoded
 OneWire oneWire(9);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature ds18b20(&oneWire);

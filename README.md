@@ -25,12 +25,12 @@ A graphical user interface (GUI) is available in a separate repository and can b
 
 ### Dependencies
 
-This project uses [PlatformIO](https://platformio.org/) for building and uploading the firmware. All dependencies are managed automatically via the `platformio.ini` configuration file.
+This project uses <a href="https://platformio.org/" target="_blank">PlatformIO</a> for building and uploading the firmware. All dependencies are managed automatically via the `platformio.ini` configuration file.
 
 #### Prerequisites:
 
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [PlatformIO IDE extension](https://platformio.org/install/ide?install=vscode)
+- <a href="https://code.visualstudio.com/" target="_blank">Visual Studio Code</a>
+- <a href="https://platformio.org/install/ide?install=vscode" target="_blank">PlatformIO IDE extension</a>
 
 Once PlatformIO is installed, all required libraries and toolchains will be installed automatically when you open the project.
 
@@ -62,10 +62,10 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 This firmware is based in part on the following open-source projects:
 
-- [BivalveBit](https://github.com/millerlp/BivalveBit)
-- [MusselGapeTracker](https://github.com/millerlp/MusselGapeTracker)
-- [BivalveBit_lib](https://github.com/millerlp/BivalveBit_lib)  
-  by [Luke Miller](https://github.com/millerlp)
+- <a href="https://github.com/millerlp/BivalveBit" target="_blank">BivalveBit</a>
+- <a href="https://github.com/millerlp/MusselGapeTracker" target="_blank">MusselGapeTracker</a>
+- <a href="https://github.com/millerlp/BivalveBit_lib" target="_blank">BivalveBit_lib</a>  
+  by <a href="https://github.com/millerlp" target="_blank">Luke Miller</a>
 
 These contributions are acknowledged and respected under the terms of the GPL v3 license.
 

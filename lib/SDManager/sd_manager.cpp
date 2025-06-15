@@ -1,11 +1,20 @@
 /**
  * @file    sd_manager.cpp
- * @author
- * @date    01-2024
+ * @author  Agustín Capovilla
+ * @date    2024-01
  *
- * @brief
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * @todo COPYRIGHT NOTICE
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "sd_manager.h"
@@ -23,6 +32,9 @@ bool SDfailFlag = false;
 SdFile logfile;  // for sd card, this is the file object to be written to
 char filename[] = "YYYYMMDD_HHMM_00_SN000.csv";
 
+/**
+ * @brief Print the error code and data from the SD card
+ */
 void errorPrint() {
     if (sd.sdErrorCode()) {
         Serial.print(F("SD errorCode: "));
@@ -54,7 +66,6 @@ bool SDCard_init(void) {
 #ifdef DEBUG
         errorPrint();
 #endif
-        // while (1) delay(10);
         return false;
     }
 
@@ -68,18 +79,12 @@ bool SDCard_init(void) {
         Serial.print(F("readInfo failed\n"));
         errorPrint();
 #endif
-        // while (1) delay(10);
         return false;
     }
-
-    // printCardType();
 
     return true;
 }
 
-/**
- *  Copy of https://github.com/millerlp/BivalveBit_lib
- */
 void SDCard_initFileName(const uint16_t year, const uint8_t month,
                          const uint8_t day, const uint8_t hour,
                          const uint8_t minute, const uint8_t second,
@@ -165,8 +170,8 @@ void SDCard_initFileName(const uint16_t year, const uint8_t month,
             break;  // Break out of the for loop when the statement
                     // if(!logfile.exists()) is finally false (i.e. you found a
                     // new file name to use).
-        }           // end of if(!sd.exists())
-    }               // end of file-naming for loop
+        }  // end of if(!sd.exists())
+    }  // end of file-naming for loop
 
     //------------------------------------------------------------
     // Write 1st header line

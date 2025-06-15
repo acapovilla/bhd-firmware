@@ -1,11 +1,23 @@
 /**
  * @file    temp_controller.h
- * @author
- * @date    01-2024
+ * @author  Agustín Capovilla
+ * @date    2024-01
  *
- * @brief
+ * @brief   Temperature controller using Miles Burton's Maxim temperature
+ * sensor library
  *
- * @todo COPYRIGHT NOTICE
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef __TEMP_CONTROLLER_H__
@@ -20,9 +32,10 @@
 bool TEMP_init(void);
 
 /**
- * @brief
+ * @brief Retrieves the temperature in Celsius from a DS18B20 sensor accessing
+ * the temperature value at index 0
  *
- * @returns
+ * @returns Temperature in Celsius as a float
  */
 float TEMP_read(void);
 

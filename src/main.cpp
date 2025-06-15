@@ -1,3 +1,29 @@
+/**
+ * @file    main.cpp
+ * @author  Agustín Capovilla
+ * @date    2024-01
+ *
+ * @brief   Main program logic for the data logger system. It initializes
+ * hardware components such as LEDs, SD card, RTC, temperature, and
+ * hall sensors. The program uses interrupts for periodically data acquisition
+ * and logs it to an SD card with a timestamp. It handles errors using LEDs and
+ * serial messages. It also supports command input via serial for setting the
+ * date and time.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <Arduino.h>
 
 #include "pin_definitions.h"
@@ -10,6 +36,7 @@
 #include "temp_controller.h"
 #include "hall_controller.h"
 
+// Uncomment the following line to enable debug messages
 // #define DEBUG
 
 DateTime now;  // Variable to hold current time
@@ -24,20 +51,22 @@ float temp_measure = 0;
 // Human-readable time stamp for log file
 char timestamp[] = "YYYY-MM-DD hh:mm:ss";
 
+// Interrupt handler for RTC alarm
 void onAlarm(void) {
     alarmFlag = true;
 }
 
+// Initialize GPIO pins
 void GPIO_init(void) {
     pinMode(ERROR_LED, OUTPUT);
     pinMode(GREEN_LED, OUTPUT);
-
+    // Shutdown LEDs
     digitalWrite(ERROR_LED, LED_OFF_STATE);
     digitalWrite(GREEN_LED, LED_OFF_STATE);
 
     pinMode(RTC_ALARM_PIN, INPUT);  // Disable pull-up
 
-    pinMode(SDCARD_SPI_CS, OUTPUT);
+    pinMode(SDCARD_SPI_CS, OUTPUT);  // SD card chip select
 }
 
 void setup() {
@@ -55,6 +84,7 @@ void setup() {
         delay(100);
     }
 
+    // Print startup message
     Serial.println("<Arduino ready>");
     delay(500);
 
@@ -127,7 +157,9 @@ void setup() {
         printTimeToSerial();  // Print actual date and time
     }
 
+    // If RTC date and time is not valid, wait until it is set correctly
     while (!RTC_dateTimeValid()) {
+        // Flash ERROR_LED at 1 Hz
         digitalWrite(ERROR_LED, !digitalRead(ERROR_LED));
         for (uint8_t _i = 0; _i < 10; ++_i) {
             CMD_readCommand();
@@ -157,6 +189,7 @@ void setup() {
         }
     }
 
+    // Initialize ADC and sleep GPIO for hall sensors
     ADC_init();
     HALL_initIO(HALL_SLEEP_GROUP0, HALL_SLEEP_GROUP1);
 
@@ -170,7 +203,7 @@ void setup() {
 
     // Start-up finished and error cleared
     Serial.flush();
-    digitalWrite(ERROR_LED, LED_OFF_STATE);  // turn off
+    digitalWrite(ERROR_LED, LED_OFF_STATE);  // turn off ERROR_LED
 
     /** -------------------------------------------------------
      * End of setup and configuration section
@@ -188,7 +221,7 @@ void setup() {
 #endif
     }
 
-    // Making it so, that the alarm will trigger an interrupt
+    // The alarm will trigger an interrupt
     pinMode(RTC_ALARM_PIN, INPUT);
     attachInterrupt(digitalPinToInterrupt(2), onAlarm, FALLING);
 
@@ -198,8 +231,8 @@ void setup() {
 }
 
 void loop() {
-    if (alarmFlag) {
-        alarmFlag = false;
+    if (alarmFlag) {        // If alarm was triggered
+        alarmFlag = false;  // Clear the flag
 
         // Show that sensor read and process is running
         digitalWrite(GREEN_LED, LED_ON_STATE);
@@ -207,6 +240,7 @@ void loop() {
         // Update now
         now = RTC_getNow();
 
+        // Print current time to Serial
         Serial.print(now.unixtime(), DEC);
         Serial.print(F(","));  // POSIX time value
 
@@ -222,19 +256,21 @@ void loop() {
         SDCard_writeFile(now.unixtime(), timestamp, hall_measures,
                          temp_measure);
 
+        // Print hall sensor values and temperature to Serial
         for (uint8_t i = 0; i < 6; ++i) {
             Serial.print(hall_measures[i]);
             Serial.print(',');
         }
         Serial.print(temp_measure, 2);
 
+        // End of logging line
         Serial.println();
         Serial.flush();
 
         // Next 1s alarm
         RTC_1secondAlarm();
 
-        // Turn-off all
+        // Turn-off green LED to show that the process is done
         digitalWrite(GREEN_LED, LED_OFF_STATE);
     }
 

@@ -11,6 +11,7 @@
 #include "cmd_interpreter.h"
 #include <Arduino.h>
 
+// Forward declarations of functions that execute the commands
 extern bool setSerialNumber(uint16_t);
 extern bool getSerialNumber(uint16_t& sn);
 extern bool setDateAndTime(const uint16_t&, const uint16_t&, const uint16_t&,
@@ -28,13 +29,13 @@ char _serialBuffer[BUFFER_SIZE];       // Buffer for serial command
 COMMANDS _command;
 
 /**
- * @brief
+ * @brief Attempts to set a serial number by converting the input string to an
+ * unsigned integer, validating it within the range 1–999, and calling the
+ * `setSerialNumber` function
  *
- * @param[in] serialnumber
+ * @param[in] serialnumber  XXX
  *
- * @return True if success
- *
- * @todo Describir
+ * @return True if the serial number was successfully set, false otherwise.
  */
 bool _cmd_setSerialNumber(const char* serialnumber) {
     uint16_t sn = strtoul(serialnumber, NULL, 10);
@@ -56,13 +57,14 @@ bool _cmd_setSerialNumber(const char* serialnumber) {
 }
 
 /**
- * @brief
+ * @brief Attempts to parse a date-time string in the format "YYYY-MM-DD
+ * HH:MM:SS" and, if successful, sets the system's RTC date and time using the
+ * parsed values. It also initializes a file name on the SD card based on the
+ * date-time and a serial number
  *
- * @param[in] datetime YYYY-MM-DD HH:MM:SS
+ * @param[in] datetime  YYYY-MM-DD HH:MM:SS
  *
- * @return True if success
- *
- * @todo Describir
+ * @return True if the date and time were successfully set, false otherwise.
  */
 bool _cmd_setDateAndtime(const char* datetime) {
     uint16_t _y, _m, _d, _h, _mm, _s;

@@ -1,11 +1,20 @@
 /**
  * @file    rtc_controller.cpp
- * @author
- * @date    01-2024
+ * @author  Agustín Capovilla
+ * @date    2024-01
  *
- * @brief
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * @todo COPYRIGHT NOTICE
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "rtc_controller.h"
@@ -74,7 +83,7 @@ bool RTC_1secondAlarm(void) {
     // Clear older alarm
     DS3231.clearAlarm(1);
 
-    // Set alarm from now + 10 seconds in the future
+    // Set alarm from now + 1 seconds in the future
     /// @todo TheCavePearl project has a better way without TimeSpan class
     _alarmSetFlag =
         DS3231.setAlarm1(DS3231.now() + TimeSpan(1), DS3231_A1_Second);
@@ -84,17 +93,22 @@ bool RTC_1secondAlarm(void) {
 bool setDateAndTime(const uint16_t &year, const uint16_t &month,
                     const uint16_t &day, const uint16_t &hour,
                     const uint16_t &minute, const uint16_t &second) {
+    // Disable alarm 1 before setting the time
     DS3231.disableAlarm(1);
 
+    // Set the RTC date and time
     DS3231.adjust(DateTime(year, month, day, hour, minute, second));
 
-    if (_alarmSetFlag) {
+    if (_alarmSetFlag) {  // If alarm was set before, reset it
         _alarmSetFlag = RTC_1secondAlarm();
     }
 
-    if (!DS3231.lostPower()) {
+    if (!DS3231.lostPower()) {  // If the RTC didn't lose power, we can set the
+                                // date time valid
         _dateTimeValid = true;
     }
+
+    // Return true if the RTC didn't lose power
     return !DS3231.lostPower();
 }
 
@@ -117,9 +131,6 @@ void printTimeToSerial(const DateTime &dt) {
     }
     Serial.print(dt.second(), DEC);
     Serial.println();
-
-    // char buf[] = "YYYY-MM-DD hh:mm:ss";
-    // Serial.println(now.toString(buf));
 }
 
 void printTimeToSerial(void) {
