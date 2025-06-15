@@ -17,6 +17,12 @@ This project is a custom firmware for a datalogger used to monitor bivalve valve
 - **Command Interface:** Supports serial commands for setting device serial number and date/time.
 - **Open Source:** Hardware and firmware are fully open for modification and improvement.
 
+### Project Links
+
+- **Firmware Repository:** [https://github.com/acapovilla/bhd-sw](https://github.com/acapovilla/bhd-firmware)
+
+- **Interface Repository:** [https://github.com/gmsanchez/almejas_gui](https://github.com/gmsanchez/almejas_gui)
+
 ## Getting Started
 
 This section will guide you through setting up the firmware project on your local machine using PlatformIO and Visual Studio Code. The firmware is ready to build and upload to the target device (Arduino Nano Every) via USB.
@@ -33,6 +39,14 @@ This project uses <a href="https://platformio.org/" target="_blank">PlatformIO</
 - <a href="https://platformio.org/install/ide?install=vscode" target="_blank">PlatformIO IDE extension</a>
 
 Once PlatformIO is installed, all required libraries and toolchains will be installed automatically when you open the project.
+
+### Getting the Source
+
+This project is [hosted on GitHub](https://github.com/acapovilla/bhd-firmware). You can clone the repository using:
+
+```
+git clone -b main https://github.com/acapovilla/bhd-firmware
+```
 
 ### Building
 
@@ -72,6 +86,8 @@ These contributions are acknowledged and respected under the terms of the GPL v3
 ## Authors
 
 - **[Agustín Capovilla](https://github.com/acapovilla)** - _Initial work_
+
+Also see the list of [contributors](https://github.com/acapovilla/bhd-firmware/contributors) who participated in this project.
 
 ## Acknowledgments
 
