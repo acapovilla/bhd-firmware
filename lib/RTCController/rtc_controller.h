@@ -44,7 +44,7 @@ DateTime RTC_getNow(void);
  *
  * @return Success
  */
-bool RTC_10secondsAlarm(void);
+bool RTC_1secondAlarm(void);
 
 /**
  * @brief Set external RTC date and Time

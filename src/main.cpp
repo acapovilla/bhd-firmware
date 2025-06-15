@@ -177,13 +177,14 @@ void setup() {
      * ------------------------------------------------------- */
 
     // schedule an alarm 10 seconds in the future
-    if (!RTC_10secondsAlarm()) {
+    if (!RTC_1secondAlarm()) {
 #ifdef DEBUG
         Serial.println("Error, alarm wasn't set!");
 #endif
+        /// @todo Handle error and not continue
     } else {
 #ifdef DEBUG
-        Serial.println("Alarm will happen in 10 seconds!");
+        Serial.println("Alarm will happen in 1 seconds!");
 #endif
     }
 
@@ -230,8 +231,8 @@ void loop() {
         Serial.println();
         Serial.flush();
 
-        // Next 10s alarm
-        RTC_10secondsAlarm();
+        // Next 1s alarm
+        RTC_1secondAlarm();
 
         // Turn-off all
         digitalWrite(GREEN_LED, LED_OFF_STATE);
